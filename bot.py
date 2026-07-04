@@ -170,6 +170,50 @@ async def setlevel(interaction: discord.Interaction, member: discord.Member, lev
         message += f"\n🎁 Role updated: **{role_name}**"
 
     await interaction.response.send_message(message, ephemeral=True)
+    
+class TopView(discord.ui.View):
+    def __init__(self, guild_id: int, page: int = 0):
+        super().__init__(timeout=120)
+        self.guild_id = guild_id
+        self.page = page
 
+    def build_embed(self):
+        limit = 10
+        offset = self.page * limit
+        users = get_leaderboard(self.guild_id, limit=limit, offset=offset)
+
+        if not users:
+            description = "No users on this page."
+        else:
+            lines = []
+            for index, user in enumerate(users, start=offset + 1):
+                level = calculate_level(user["xp"])
+                lines.append(f"**#{index}** {user['username']} — Level **{level}**, `{user['xp']} XP`")
+            description = "\n".join(lines)
+
+        embed = discord.Embed(
+            title="🏆 XP Top",
+            description=description,
+            color=0x2ECC71,
+        )
+        embed.set_footer(text=f"Page {self.page + 1}")
+        return embed
+
+    @discord.ui.button(label="Previous", style=discord.ButtonStyle.secondary)
+    async def previous_page(self, interaction: discord.Interaction, button: discord.ui.Button):
+        if self.page > 0:
+            self.page -= 1
+        await interaction.response.edit_message(embed=self.build_embed(), view=self)
+
+    @discord.ui.button(label="Next", style=discord.ButtonStyle.secondary)
+    async def next_page(self, interaction: discord.Interaction, button: discord.ui.Button):
+        self.page += 1
+        await interaction.response.edit_message(embed=self.build_embed(), view=self)
+
+
+@bot.tree.command(name="top", description="Show XP leaderboard pages.")
+async def top(interaction: discord.Interaction):
+    view = TopView(interaction.guild.id)
+    await interaction.response.send_message(embed=view.build_embed(), view=view)
 
 bot.run(TOKEN)
