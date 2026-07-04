@@ -35,36 +35,24 @@ def xp_for_level(level: int) -> int:
 
 
 async def update_level_roles(member: discord.Member, level: int):
-    reward_roles = []
-
-    for role_name in LEVEL_ROLES.values():
-        role = discord.utils.get(member.guild.roles, name=role_name)
-        if role:
-            reward_roles.append(role)
-
-    best_level = None
-    for required_level in sorted(LEVEL_ROLES.keys()):
-        if level >= required_level:
-            best_level = required_level
-
-    new_role = None
-    if best_level:
-        new_role = discord.utils.get(member.guild.roles, name=LEVEL_ROLES[best_level])
+    added_roles = []
 
     try:
-        for role in reward_roles:
-            if role in member.roles and role != new_role:
-                await member.remove_roles(role, reason="XP level role update")
+        for required_level, role_name in LEVEL_ROLES.items():
+            if level >= required_level:
+                role = discord.utils.get(member.guild.roles, name=role_name)
 
-        if new_role and new_role not in member.roles:
-            await member.add_roles(new_role, reason="XP level role reward")
-            return new_role.name
+                if role and role not in member.roles:
+                    await member.add_roles(role, reason="XP level role reward")
+                    added_roles.append(role.name)
 
     except discord.Forbidden:
         print("Missing permission or role hierarchy issue. Move Neo Bot role above XP roles.")
 
-    return None
+    if added_roles:
+        return ", ".join(added_roles)
 
+    return None
 
 @bot.event
 async def on_ready():
