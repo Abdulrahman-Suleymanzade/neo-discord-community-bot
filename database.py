@@ -4,7 +4,7 @@ from pathlib import Path
 from leveling import calculate_level
 
 DB_PATH = Path("data/users.db")
-COOLDOWN_SECONDS = 60
+COOLDOWN_SECONDS = 20
 
 
 def get_connection():
@@ -31,10 +31,7 @@ def add_xp(guild_id: int, user_id: int, username: str, xp_amount: int):
 
     with get_connection() as conn:
         cursor = conn.cursor()
-        cursor.execute(
-            "SELECT xp, last_xp_time FROM users WHERE guild_id = ? AND user_id = ?",
-            (guild_id, user_id),
-        )
+        cursor.execute("SELECT xp, last_xp_time FROM users WHERE guild_id = ? AND user_id = ?", (guild_id, user_id))
         row = cursor.fetchone()
 
         if row is None:
@@ -47,7 +44,6 @@ def add_xp(guild_id: int, user_id: int, username: str, xp_amount: int):
             new_xp = xp_amount
         else:
             old_xp, last_xp_time = row
-
             if now - last_xp_time < COOLDOWN_SECONDS:
                 return {"leveled_up": False, "new_level": calculate_level(old_xp)}
 
@@ -62,22 +58,36 @@ def add_xp(guild_id: int, user_id: int, username: str, xp_amount: int):
         return {"leveled_up": new_level > old_level, "new_level": new_level}
 
 
+def set_user_xp(guild_id: int, user_id: int, username: str, xp: int):
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute("SELECT xp FROM users WHERE guild_id = ? AND user_id = ?", (guild_id, user_id))
+        row = cursor.fetchone()
+
+        if row is None:
+            cursor.execute(
+                "INSERT INTO users (guild_id, user_id, username, xp, last_xp_time) VALUES (?, ?, ?, ?, ?)",
+                (guild_id, user_id, username, xp, int(time.time())),
+            )
+        else:
+            cursor.execute(
+                "UPDATE users SET username = ?, xp = ? WHERE guild_id = ? AND user_id = ?",
+                (username, xp, guild_id, user_id),
+            )
+
+        return {"xp": xp, "level": calculate_level(xp)}
+
+
 def get_user_rank(guild_id: int, user_id: int):
     with get_connection() as conn:
         cursor = conn.cursor()
-        cursor.execute(
-            "SELECT username, xp FROM users WHERE guild_id = ? AND user_id = ?",
-            (guild_id, user_id),
-        )
+        cursor.execute("SELECT username, xp FROM users WHERE guild_id = ? AND user_id = ?", (guild_id, user_id))
         user = cursor.fetchone()
 
         if not user:
             return None
 
-        cursor.execute(
-            "SELECT COUNT(*) + 1 FROM users WHERE guild_id = ? AND xp > ?",
-            (guild_id, user[1]),
-        )
+        cursor.execute("SELECT COUNT(*) + 1 FROM users WHERE guild_id = ? AND xp > ?", (guild_id, user[1]))
         rank = cursor.fetchone()[0]
 
         return {"username": user[0], "xp": user[1], "rank": rank}
