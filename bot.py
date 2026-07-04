@@ -15,12 +15,12 @@ if not TOKEN:
 OWNER_IDS = {1340747140153999380}
 
 LEVEL_ROLES = {
-    5: "🥉 Bronze",
-    10: "🥈 Silver",
-    20: "🥇 Gold",
-    35: "🔷 Platinum",
-    55: "💎 Diamond",
-    80: "👑 Legend",
+    5: "🥉Bronze",
+    10: "🥈Silver",
+    20: "🥇Gold",
+    35: "🔷Platinum",
+    55: "💎Diamond",
+    80: "👑Legend",
 }
 
 intents = discord.Intents.default()
