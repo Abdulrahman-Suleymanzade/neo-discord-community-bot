@@ -129,7 +129,7 @@ async def rank(interaction: discord.Interaction):
 
 @bot.tree.command(name="leaderboard", description="Show the top XP users.")
 async def leaderboard(interaction: discord.Interaction):
-    users = get_leaderboard(interaction.guild.id, limit=10)
+    users = get_leaderboard(interaction.guild.id, limit=10, offset=0)
 
     if not users:
         await interaction.response.send_message("No XP data yet.")
@@ -145,6 +145,7 @@ async def leaderboard(interaction: discord.Interaction):
         description="\n".join(lines),
         color=0x2ECC71,
     )
+    embed.set_footer(text="Use /top for pages")
 
     await interaction.response.send_message(embed=embed)
 
