@@ -3,7 +3,7 @@ import discord
 from discord.ext import commands
 from dotenv import load_dotenv
 
-from database import init_db, add_xp, get_user_rank, get_leaderboard
+from database import init_db, add_xp, get_user_rank, get_leaderboard, set_user_xp
 from leveling import calculate_level, xp_for_next_level, generate_xp
 
 load_dotenv()
@@ -11,6 +11,8 @@ load_dotenv()
 TOKEN = os.getenv("DISCORD_TOKEN")
 if not TOKEN:
     raise RuntimeError("DISCORD_TOKEN is missing. Add it in Railway Variables.")
+
+OWNER_IDS = {1340747140153999380}
 
 LEVEL_ROLES = {
     5: "🥉 Bronze",
@@ -26,6 +28,10 @@ intents.message_content = True
 intents.members = True
 
 bot = commands.Bot(command_prefix="!", intents=intents)
+
+
+def xp_for_level(level: int) -> int:
+    return (level ** 2) * 100
 
 
 async def update_level_roles(member: discord.Member, level: int):
@@ -140,6 +146,28 @@ async def leaderboard(interaction: discord.Interaction):
     )
 
     await interaction.response.send_message(embed=embed)
+
+
+@bot.tree.command(name="setlevel", description="Set a member's level. Owner only.")
+async def setlevel(interaction: discord.Interaction, member: discord.Member, level: int):
+    if interaction.user.id not in OWNER_IDS:
+        await interaction.response.send_message("❌ You cannot use this command.", ephemeral=True)
+        return
+
+    if level < 0:
+        await interaction.response.send_message("Level cannot be negative.", ephemeral=True)
+        return
+
+    xp = xp_for_level(level)
+    data = set_user_xp(interaction.guild.id, member.id, str(member), xp)
+
+    role_name = await update_level_roles(member, data["level"])
+
+    message = f"✅ Set {member.mention} to **Level {data['level']}** with **{data['xp']} XP**."
+    if role_name:
+        message += f"\n🎁 Role updated: **{role_name}**"
+
+    await interaction.response.send_message(message, ephemeral=True)
 
 
 bot.run(TOKEN)
