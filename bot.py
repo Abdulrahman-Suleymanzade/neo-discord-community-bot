@@ -10,13 +10,54 @@ load_dotenv()
 
 TOKEN = os.getenv("DISCORD_TOKEN")
 if not TOKEN:
-    raise RuntimeError("DISCORD_TOKEN is missing. Add it in Render Environment Variables.")
+    raise RuntimeError("DISCORD_TOKEN is missing. Add it in Railway Variables.")
+
+LEVEL_ROLES = {
+    5: "🥉 Bronze",
+    10: "🥈 Silver",
+    20: "🥇 Gold",
+    35: "🔷 Platinum",
+    55: "💎 Diamond",
+    80: "👑 Legend",
+}
 
 intents = discord.Intents.default()
 intents.message_content = True
 intents.members = True
 
 bot = commands.Bot(command_prefix="!", intents=intents)
+
+
+async def update_level_roles(member: discord.Member, level: int):
+    reward_roles = []
+
+    for role_name in LEVEL_ROLES.values():
+        role = discord.utils.get(member.guild.roles, name=role_name)
+        if role:
+            reward_roles.append(role)
+
+    best_level = None
+    for required_level in sorted(LEVEL_ROLES.keys()):
+        if level >= required_level:
+            best_level = required_level
+
+    new_role = None
+    if best_level:
+        new_role = discord.utils.get(member.guild.roles, name=LEVEL_ROLES[best_level])
+
+    try:
+        for role in reward_roles:
+            if role in member.roles and role != new_role:
+                await member.remove_roles(role, reason="XP level role update")
+
+        if new_role and new_role not in member.roles:
+            await member.add_roles(new_role, reason="XP level role reward")
+            return new_role.name
+
+    except discord.Forbidden:
+        print("Missing permission or role hierarchy issue. Move Neo Bot role above XP roles.")
+
+    return None
 
 
 @bot.event
@@ -45,9 +86,13 @@ async def on_message(message):
     )
 
     if result["leveled_up"]:
-        await message.channel.send(
-            f"💚 {message.author.mention} leveled up to **Level {result['new_level']}**!"
-        )
+        role_name = await update_level_roles(message.author, result["new_level"])
+
+        text = f"💚 {message.author.mention} leveled up to **Level {result['new_level']}**!"
+        if role_name:
+            text += f"\n🎁 New role unlocked: **{role_name}**"
+
+        await message.channel.send(text)
 
     await bot.process_commands(message)
 
