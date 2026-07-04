@@ -93,12 +93,12 @@ def get_user_rank(guild_id: int, user_id: int):
         return {"username": user[0], "xp": user[1], "rank": rank}
 
 
-def get_leaderboard(guild_id: int, limit: int = 10):
+def get_leaderboard(guild_id: int, limit: int = 10, offset: int = 0):
     with get_connection() as conn:
         conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
         cursor.execute(
-            "SELECT username, xp FROM users WHERE guild_id = ? ORDER BY xp DESC LIMIT ?",
-            (guild_id, limit),
+            "SELECT username, xp FROM users WHERE guild_id = ? ORDER BY xp DESC LIMIT ? OFFSET ?",
+            (guild_id, limit, offset),
         )
         return [dict(row) for row in cursor.fetchall()]
