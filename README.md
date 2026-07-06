@@ -38,3 +38,4 @@ python bot.py
 ## Deployment
 
 This project includes `render.yaml` for deployment as a Render background worker.
+Updated deployment trigger.
