@@ -2,6 +2,7 @@ import os
 import discord
 from discord.ext import commands
 from dotenv import load_dotenv
+from profile_card import create_profile_card
 
 from database import init_db, add_xp, get_user_rank, get_leaderboard, set_user_xp
 from leveling import calculate_level, xp_for_next_level, generate_xp
@@ -216,4 +217,46 @@ async def top(interaction: discord.Interaction):
     view = TopView(interaction.guild.id)
     await interaction.response.send_message(embed=view.build_embed(), view=view)
 
+@bot.tree.command(name="profile", description="Show a member profile card.")
+async def profile(interaction: discord.Interaction, member: discord.Member | None = None):
+    target = member or interaction.user
+
+    data = get_user_rank(interaction.guild.id, target.id)
+
+    if not data:
+        await interaction.response.send_message(
+            f"{target.mention} does not have XP yet.",
+            ephemeral=True,
+        )
+        return
+
+    level = calculate_level(data["xp"])
+    next_xp = xp_for_next_level(level)
+    current_level_xp = level ** 2 * 100
+
+    current_xp = data["xp"] - current_level_xp
+    needed_xp = next_xp - current_level_xp
+
+    role_name = "No XP Role"
+    for required_level, name in LEVEL_ROLES.items():
+        if level >= required_level:
+            role_name = name
+
+    avatar_bytes = await target.display_avatar.replace(size=256).read()
+
+    card = create_profile_card(
+        username=target.display_name,
+        avatar_bytes=avatar_bytes,
+        level=level,
+        rank=data["rank"],
+        total_xp=data["xp"],
+        current_xp=current_xp,
+        needed_xp=needed_xp,
+        role_name=role_name,
+        server_name=interaction.guild.name,
+    )
+
+    file = discord.File(card, filename="profile.png")
+    await interaction.response.send_message(file=file)
+    
 bot.run(TOKEN)
