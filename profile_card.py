@@ -12,8 +12,11 @@ GRAY = (150, 160, 170)
 
 
 def _font(size: int, bold: bool = False):
-    path = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf" if bold else "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
-    return ImageFont.truetype(path, size)
+    try:
+        name = "DejaVuSans-Bold.ttf" if bold else "DejaVuSans.ttf"
+        return ImageFont.truetype(name, size)
+    except Exception:
+        return ImageFont.load_default()
 
 
 def create_profile_card(
