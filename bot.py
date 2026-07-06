@@ -68,6 +68,7 @@ async def update_level_roles(member: discord.Member, level: int):
         return " | ".join(parts)
 
     return None
+    
 @bot.event
 async def on_ready():
     init_db()
