@@ -42,7 +42,6 @@ async def update_level_roles(member: discord.Member, level: int):
     try:
         for required_level, role_name in LEVEL_ROLES.items():
             role = discord.utils.get(member.guild.roles, name=role_name)
-
             if not role:
                 continue
 
@@ -64,11 +63,9 @@ async def update_level_roles(member: discord.Member, level: int):
     if removed_roles:
         parts.append("Removed: " + ", ".join(removed_roles))
 
-    if parts:
-        return " | ".join(parts)
+    return " | ".join(parts) if parts else None
 
-    return None
-    
+
 @bot.event
 async def on_ready():
     init_db()
@@ -172,7 +169,8 @@ async def setlevel(interaction: discord.Interaction, member: discord.Member, lev
         message += f"\n🎁 Role updated: **{role_name}**"
 
     await interaction.response.send_message(message, ephemeral=True)
-    
+
+
 class TopView(discord.ui.View):
     def __init__(self, guild_id: int, page: int = 0):
         super().__init__(timeout=120)
@@ -218,17 +216,16 @@ async def top(interaction: discord.Interaction):
     view = TopView(interaction.guild.id)
     await interaction.response.send_message(embed=view.build_embed(), view=view)
 
+
 @bot.tree.command(name="profile", description="Show a member profile card.")
 async def profile(interaction: discord.Interaction, member: discord.Member | None = None):
     target = member or interaction.user
+    await interaction.response.defer()
 
     data = get_user_rank(interaction.guild.id, target.id)
 
     if not data:
-        await interaction.response.send_message(
-            f"{target.mention} does not have XP yet.",
-            ephemeral=True,
-        )
+        await interaction.followup.send(f"{target.mention} does not have XP yet.")
         return
 
     level = calculate_level(data["xp"])
@@ -258,6 +255,7 @@ async def profile(interaction: discord.Interaction, member: discord.Member | Non
     )
 
     file = discord.File(card, filename="profile.png")
-    await interaction.response.send_message(file=file)
-    
+    await interaction.followup.send(file=file)
+
+
 bot.run(TOKEN)
