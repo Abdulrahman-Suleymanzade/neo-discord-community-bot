@@ -263,5 +263,50 @@ async def profile(interaction: discord.Interaction, member: discord.Member | Non
     file = discord.File(card, filename="profile.png")
     await interaction.followup.send(file=file)
 
+@bot.tree.command(name="rankroles", description="View all XP role rewards.")
+async def rankroles(interaction: discord.Interaction):
+    level = 0
+
+    data = get_user_rank(interaction.guild.id, interaction.user.id)
+    if data:
+        level = calculate_level(data["xp"])
+
+    lines = []
+
+    next_reward = None
+
+    for required_level, role in LEVEL_ROLES.items():
+        if level >= required_level:
+            icon = "✅"
+        else:
+            icon = "⬜"
+
+        lines.append(f"{icon} **{role}** — Level **{required_level}**")
+
+        if next_reward is None and level < required_level:
+            next_reward = f"{role} (Level {required_level})"
+
+    embed = discord.Embed(
+        title="💚 XP Rank Roles",
+        description="\n".join(lines),
+        color=0x2ECC71,
+    )
+
+    embed.add_field(
+        name="Your Level",
+        value=f"**{level}**",
+        inline=True,
+    )
+
+    embed.add_field(
+        name="Next Reward",
+        value=next_reward or "🏆 All rewards unlocked!",
+        inline=True,
+    )
+
+    embed.set_footer(text="Earn XP by chatting and staying in voice channels.")
+
+    await interaction.response.send_message(embed=embed)
+
 
 bot.run(TOKEN)
