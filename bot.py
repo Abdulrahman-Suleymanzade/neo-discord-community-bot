@@ -34,7 +34,7 @@ bot = commands.Bot(command_prefix="!", intents=intents)
 
 
 def xp_for_level(level: int) -> int:
-    return (level ** 2) * 100
+    return (level ** 2) * 25
 
 
 async def update_level_roles(member: discord.Member, level: int):
