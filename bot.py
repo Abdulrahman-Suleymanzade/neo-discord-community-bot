@@ -236,7 +236,7 @@ async def profile(interaction: discord.Interaction, member: discord.Member | Non
 
     level = calculate_level(data["xp"])
     next_xp = xp_for_next_level(level)
-    current_level_xp = level ** 2 * 25
+    current_level_xp = xp_for_level(level)
 
     current_xp = data["xp"] - current_level_xp
     needed_xp = next_xp - current_level_xp
