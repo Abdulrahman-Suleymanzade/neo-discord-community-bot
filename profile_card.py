@@ -126,7 +126,7 @@ def create_profile_card(
     progress = 0 if needed_xp <= 0 else max(0, min(current_xp / needed_xp, 1))
     fill_w = int(bar_w * progress)
 
-    draw.text((bar_x, 282), "XP PROGRESS", font=label_font, fill=GRAY)
+    draw.text((bar_x, 292), "XP PROGRESS", font=label_font, fill=GRAY)
     draw.text((CARD_WIDTH - 250, 292), f"{current_xp:,} / {needed_xp:,} XP", font=xp_font, fill=WHITE)
 
     draw.rounded_rectangle((bar_x, bar_y, bar_x + bar_w, bar_y + bar_h), radius=16, fill=BAR_BG)
