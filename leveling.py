@@ -3,6 +3,7 @@ import math
 
 MIN_XP = 15
 MAX_XP = 40
+XP_MULTIPLIER = 25
 
 
 def generate_xp() -> int:
@@ -10,8 +11,12 @@ def generate_xp() -> int:
 
 
 def calculate_level(xp: int) -> int:
-    return int(math.sqrt(xp // 100))
+    return int(math.sqrt(xp / XP_MULTIPLIER))
 
 
 def xp_for_next_level(level: int) -> int:
-    return ((level + 1) ** 2) * 100
+    return ((level + 1) ** 2) * XP_MULTIPLIER
+
+
+def xp_for_level(level: int) -> int:
+    return (level ** 2) * XP_MULTIPLIER
