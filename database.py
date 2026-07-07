@@ -141,3 +141,39 @@ def get_leaderboard(guild_id: int, limit: int = 10, offset: int = 0):
 
         rows = cursor.fetchall()
         return [{"username": row[0], "xp": row[1]} for row in rows]
+
+def add_voice_xp(guild_id: int, user_id: int, username: str, xp_amount: int):
+    with get_connection() as conn:
+        cursor = conn.cursor()
+
+        cursor.execute(
+            "SELECT xp FROM users WHERE guild_id = %s AND user_id = %s",
+            (guild_id, user_id),
+        )
+        row = cursor.fetchone()
+
+        if row is None:
+            old_xp = 0
+            cursor.execute(
+                "INSERT INTO users (guild_id, user_id, username, xp, last_xp_time) VALUES (%s, %s, %s, %s, %s)",
+                (guild_id, user_id, username, xp_amount, int(time.time())),
+            )
+            new_xp = xp_amount
+        else:
+            old_xp = row[0]
+            new_xp = old_xp + xp_amount
+            cursor.execute(
+                "UPDATE users SET username = %s, xp = %s WHERE guild_id = %s AND user_id = %s",
+                (username, new_xp, guild_id, user_id),
+            )
+
+        conn.commit()
+
+        old_level = calculate_level(old_xp)
+        new_level = calculate_level(new_xp)
+
+        return {
+            "leveled_up": new_level > old_level,
+            "new_level": new_level,
+            "xp": new_xp,
+        }
