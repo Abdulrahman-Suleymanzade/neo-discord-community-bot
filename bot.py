@@ -6,7 +6,7 @@ from profile_card import create_profile_card
 from voice_xp import VoiceXP
 
 from database import init_db, add_xp, get_user_rank, get_leaderboard, set_user_xp
-from leveling import calculate_level, xp_for_next_level, generate_xp
+from leveling import calculate_level, xp_for_next_level, xp_for_level, generate_xp
 
 load_dotenv()
 
