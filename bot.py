@@ -3,6 +3,7 @@ import discord
 from discord.ext import commands
 from dotenv import load_dotenv
 from profile_card import create_profile_card
+from voice_xp import VoiceXP
 
 from database import init_db, add_xp, get_user_rank, get_leaderboard, set_user_xp
 from leveling import calculate_level, xp_for_next_level, generate_xp
@@ -27,6 +28,7 @@ LEVEL_ROLES = {
 intents = discord.Intents.default()
 intents.message_content = True
 intents.members = True
+intents.voice_states = True
 
 bot = commands.Bot(command_prefix="!", intents=intents)
 
@@ -69,6 +71,10 @@ async def update_level_roles(member: discord.Member, level: int):
 @bot.event
 async def on_ready():
     init_db()
+
+    if not hasattr(bot, "voice_xp"):
+        bot.voice_xp = VoiceXP(bot, update_level_roles)
+
     try:
         synced = await bot.tree.sync()
         print(f"Synced {len(synced)} slash commands.")
@@ -96,7 +102,7 @@ async def on_message(message):
 
         text = f"💚 {message.author.mention} leveled up to **Level {result['new_level']}**!"
         if role_name:
-            text += f"\n🎁 New role unlocked: **{role_name}**"
+            text += f"\n🎁 Role updated: **{role_name}**"
 
         await message.channel.send(text)
 
