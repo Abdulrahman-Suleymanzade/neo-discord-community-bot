@@ -1,8 +1,8 @@
 from discord.ext import tasks
 from database import add_voice_xp
 
-VOICE_XP_AMOUNT = 10
-VOICE_XP_INTERVAL_SECONDS = 300
+VOICE_XP_AMOUNT = 5
+VOICE_XP_INTERVAL_SECONDS = 60
 
 
 class VoiceXP:
