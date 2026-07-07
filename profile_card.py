@@ -127,15 +127,15 @@ def create_profile_card(
     fill_w = int(bar_w * progress)
 
     draw.text((bar_x, 282), "XP PROGRESS", font=label_font, fill=GRAY)
-    draw.text((CARD_WIDTH - 250, 278), f"{current_xp:,} / {needed_xp:,} XP", font=xp_font, fill=WHITE)
+    draw.text((CARD_WIDTH - 250, 292), f"{current_xp:,} / {needed_xp:,} XP", font=xp_font, fill=WHITE)
 
     draw.rounded_rectangle((bar_x, bar_y, bar_x + bar_w, bar_y + bar_h), radius=16, fill=BAR_BG)
     if fill_w > 0:
         draw.rounded_rectangle((bar_x, bar_y, bar_x + fill_w, bar_y + bar_h), radius=16, fill=GREEN)
 
     percent = int(progress * 100)
-    draw.text((bar_x, 362), f"{percent}% to next level", font=small_font, fill=GRAY)
-    draw.text((CARD_WIDTH - 280, 362), f"Total XP: {total_xp:,}", font=small_font, fill=GRAY)
+    draw.text((bar_x, 354), f"{percent}% to next level", font=small_font, fill=GRAY)
+    draw.text((CARD_WIDTH - 280, 354), f"Total XP: {total_xp:,}", font=small_font, fill=GRAY)
 
     output = BytesIO()
     card.convert("RGB").save(output, format="PNG")
