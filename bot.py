@@ -272,19 +272,16 @@ async def rankroles(interaction: discord.Interaction):
         level = calculate_level(data["xp"])
 
     lines = []
-
     next_reward = None
 
-    for required_level, role in LEVEL_ROLES.items():
-        if level >= required_level:
-            icon = "✅"
-        else:
-            icon = "⬜"
-
+    for required_level, role in sorted(LEVEL_ROLES.items(), reverse=True):
+        icon = "✅" if level >= required_level else "⬜"
         lines.append(f"{icon} **{role}** — Level **{required_level}**")
 
-        if next_reward is None and level < required_level:
+    for required_level, role in sorted(LEVEL_ROLES.items()):
+        if level < required_level:
             next_reward = f"{role} (Level {required_level})"
+            break
 
     embed = discord.Embed(
         title="💚 XP Rank Roles",
@@ -292,12 +289,7 @@ async def rankroles(interaction: discord.Interaction):
         color=0x2ECC71,
     )
 
-    embed.add_field(
-        name="Your Level",
-        value=f"**{level}**",
-        inline=True,
-    )
-
+    embed.add_field(name="Your Level", value=f"**{level}**", inline=True)
     embed.add_field(
         name="Next Reward",
         value=next_reward or "🏆 All rewards unlocked!",
