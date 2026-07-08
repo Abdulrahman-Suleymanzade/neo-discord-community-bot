@@ -168,9 +168,9 @@ async def setlevel(interaction: discord.Interaction, member: discord.Member, lev
     xp = xp_for_level(level)
     data = set_user_xp(interaction.guild.id, member.id, str(member), xp)
 
-    role_name = await update_level_roles(member, data["level"])
+    role_name = await update_level_roles(member, level)
 
-    message = f"✅ Set {member.mention} to **Level {data['level']}** with **{data['xp']} XP**."
+    message = f"✅ Set {member.mention} to **Level {level}** with **{data['xp']} XP**."
     if role_name:
         message += f"\n🎁 Role updated: **{role_name}**"
 
