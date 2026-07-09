@@ -235,23 +235,34 @@ async def profile(interaction: discord.Interaction, member: discord.Member | Non
         return
 
     level = calculate_level(data["xp"])
-    next_xp = xp_for_next_level(level)
-    current_level_xp = xp_for_level(level)
+    prestige = calculate_prestige(level)
+
+    if prestige > 0:
+        next_level = next_prestige_level(level)
+        current_level_xp = xp_for_level(100 + ((prestige - 1) * 50))
+        next_xp = xp_for_level(next_level)
+    else:
+        current_level_xp = xp_for_level(level)
+        next_xp = xp_for_next_level(level)
 
     current_xp = data["xp"] - current_level_xp
     needed_xp = next_xp - current_level_xp
-
+    
     role_name = "No XP Role"
-    for required_level, name in LEVEL_ROLES.items():
-        if level >= required_level:
-            role_name = name
+
+    if prestige > 0:
+        role_name = f"⭐ Prestige {prestige}"
+    else:
+        for required_level, name in LEVEL_ROLES.items():
+            if level >= required_level:
+                role_name = name
 
     avatar_bytes = await target.display_avatar.replace(size=256).read()
 
     card = create_profile_card(
         username=target.display_name,
         avatar_bytes=avatar_bytes,
-        level=level,
+        level=f"P{prestige}" if prestige > 0 else level,
         rank=data["rank"],
         total_xp=data["xp"],
         current_xp=current_xp,
