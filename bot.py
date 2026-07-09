@@ -100,11 +100,25 @@ async def on_message(message):
     if result["leveled_up"]:
         role_name = await update_level_roles(message.author, result["new_level"])
 
-        text = f"💚 {message.author.mention} leveled up to **Level {result['new_level']}**!"
-        if role_name:
-            text += f"\n🎁 Role updated: **{role_name}**"
+        prestige = calculate_prestige(result["new_level"])
 
-        await message.channel.send(text)
+        if prestige > 0:
+            previous_prestige = calculate_prestige(result["new_level"] - 1)
+
+            if prestige > previous_prestige:
+                text = (
+                    f"⭐ {message.author.mention} reached **Prestige {prestige}**!\n"
+                    f"🔥 Congratulations on your incredible dedication!"
+                )
+
+                await message.channel.send(text)
+        else:
+            text = f"💚 {message.author.mention} leveled up to **Level {result['new_level']}**!"
+
+            if role_name:
+                text += f"\n🎁 Role updated: **{role_name}**"
+
+            await message.channel.send(text)
 
     await bot.process_commands(message)
 
